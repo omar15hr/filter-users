@@ -10,6 +10,9 @@ function App() {
   const originalUsers = useRef<User[]>([]);
   const [filterCountry, setFilterCountry] = useState<string | null>(null);
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const toggleColor = () => {
     setShowColors(!showColors);
   };
@@ -34,13 +37,22 @@ function App() {
   };
 
   useEffect(() => {
-    fetch("https://randomuser.me/api/?results=100")
-      .then(async (res) => await res.json())
+    setLoading(true);
+    setError(null);
+    fetch("https://randomuser.me/api/?results=10")
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Failed to fetch users");
+        return await res.json()
+      })
       .then((res) => {
         setUsers(res.results);
         originalUsers.current = res.results;
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        setError(err) 
+        console.log(err)
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const filteredUsers = useMemo(() => {
@@ -88,12 +100,19 @@ function App() {
         />
       </header>
       <main>
-        <UsersList
-          changeSorting={handleChangeSort}
-          users={sortedUsers}
-          showColors={showColors}
-          handleDelete={handleDelete}
-        />
+        {loading && <strong>Cargando...</strong>}
+        {!loading && error && <p>Error: {error}</p>}
+        {!loading && !error && users.length === 0 && (
+          <p>No hay usuarios disponibles</p>
+        )}
+        {!loading && !error && users.length > 0 && (
+          <UsersList
+            changeSorting={handleChangeSort}
+            users={sortedUsers}
+            showColors={showColors}
+            handleDelete={handleDelete}
+          />
+        )}
       </main>
     </div>
   );
