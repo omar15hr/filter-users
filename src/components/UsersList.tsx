@@ -3,11 +3,12 @@ import { User } from "../interfaces/types";
 interface UsersListProps {
   users: User[];
   showColors: boolean;
+  handleDelete: (email: string) => void;
 }
 
-export function UsersList({ users, showColors }: UsersListProps) {
+export function UsersList({ users, showColors, handleDelete }: UsersListProps) {
   return (
-    <table width='100%'>
+    <table width="100%">
       <thead>
         <tr>
           <th>Foto</th>
@@ -18,13 +19,10 @@ export function UsersList({ users, showColors }: UsersListProps) {
         </tr>
       </thead>
       <tbody>
-        {
-          users.map((user, index) => {
-            
-            const backgroundColor = index % 2 === 0 ? '#333' : '#555';
-            const color = showColors ? backgroundColor : '';
-            return (
-
+        {users.map((user, index) => {
+          const backgroundColor = index % 2 === 0 ? "#333" : "#555";
+          const color = showColors ? backgroundColor : "";
+          return (
             <tr key={user.email} style={{ backgroundColor: color }}>
               <td>
                 <img src={user.picture?.thumbnail} alt={user.name?.first} />
@@ -33,12 +31,12 @@ export function UsersList({ users, showColors }: UsersListProps) {
               <td>{user.name?.last}</td>
               <td>{user.location?.country}</td>
               <td>
-                <button>Borrar</button>
+                <button onClick={() => handleDelete(user.email!)}>Borrar</button>
               </td>
             </tr>
-          )})
-        }
+          );
+        })}
       </tbody>
     </table>
-  )
+  );
 }

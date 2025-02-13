@@ -11,6 +11,11 @@ main {
   display: flex;
 }
 
+header button {
+  margin-bottom: 20px;
+  margin-right: 20px;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;

@@ -13,7 +13,12 @@ function App() {
   };
 
   const toggleSortByCountry = () => {
-    setSortByCountry(prevState => !prevState);
+    setSortByCountry((prevState) => !prevState);
+  };
+
+  const handleDelete = (email: string) => {
+    const filteredUsers = users.filter((user) => user.email !== email);
+    setUsers(filteredUsers);
   };
 
   useEffect(() => {
@@ -25,11 +30,11 @@ function App() {
       .catch((err) => console.log(err));
   }, []);
 
-  const sortedUsers = sortByCountry 
-  ? users.toSorted((a, b) => {
-      return a.location!.country.localeCompare(b.location!.country);
-    }) 
-  : users
+  const sortedUsers = sortByCountry
+    ? users.toSorted((a, b) => {
+        return a.location!.country.localeCompare(b.location!.country);
+      })
+    : users;
 
   return (
     <div className="app">
@@ -41,7 +46,11 @@ function App() {
         </button>
       </header>
       <main>
-        <UsersList users={sortedUsers} showColors={showColors} />
+        <UsersList
+          users={sortedUsers}
+          showColors={showColors}
+          handleDelete={handleDelete}
+        />
       </main>
     </div>
   );
