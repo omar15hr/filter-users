@@ -25,7 +25,7 @@ export function UsersList({ users, showColors }: UsersListProps) {
             const color = showColors ? backgroundColor : '';
             return (
 
-            <tr key={user.id?.value} style={{ backgroundColor: color }}>
+            <tr key={user.email} style={{ backgroundColor: color }}>
               <td>
                 <img src={user.picture?.thumbnail} alt={user.name?.first} />
               </td>
