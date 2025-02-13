@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { type User } from "./interfaces/types";
 import { UsersList } from "./components/UsersList";
 import "./App.css";
@@ -7,6 +7,8 @@ function App() {
   const [users, setUsers] = useState<User[]>([]);
   const [showColors, setShowColors] = useState(false);
   const [sortByCountry, setSortByCountry] = useState(false);
+  const originalUsers = useRef<User[]>([]);
+  const [filterCountry, setFilterCountry] = useState<string | null>(null);
 
   const toggleColor = () => {
     setShowColors(!showColors);
@@ -21,20 +23,34 @@ function App() {
     setUsers(filteredUsers);
   };
 
+  const handleReset = () => {
+    setUsers(originalUsers.current);
+  };
+
   useEffect(() => {
     fetch("https://randomuser.me/api/?results=100")
       .then(async (res) => await res.json())
       .then((res) => {
         setUsers(res.results);
+        originalUsers.current = res.results;
       })
       .catch((err) => console.log(err));
   }, []);
 
+  const filteredUsers =
+    typeof filterCountry === "string" && filterCountry.length > 0
+      ? users.filter((user) => {
+          return user
+            .location!.country.toLowerCase()
+            .includes(filterCountry.toLowerCase());
+        })
+      : users;
+
   const sortedUsers = sortByCountry
-    ? users.toSorted((a, b) => {
+    ? filteredUsers.toSorted((a, b) => {
         return a.location!.country.localeCompare(b.location!.country);
       })
-    : users;
+    : filteredUsers;
 
   return (
     <div className="app">
@@ -44,6 +60,14 @@ function App() {
         <button onClick={toggleSortByCountry}>
           {sortByCountry ? "No ordenar por país" : "Ordenar por país"}
         </button>
+        <button onClick={handleReset}>Resetear Estado</button>
+        <input
+          type="text"
+          placeholder="Filtrar por país"
+          onChange={(e) => {
+            setFilterCountry(e.target.value);
+          }}
+        />
       </header>
       <main>
         <UsersList
