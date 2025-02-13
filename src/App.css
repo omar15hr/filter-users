@@ -16,6 +16,10 @@ header button {
   margin-right: 20px;
 }
 
+.pointer {
+  cursor: pointer;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;

@@ -1,20 +1,21 @@
-import { User } from "../interfaces/types";
+import { SortBy, User } from "../interfaces/types";
 
 interface UsersListProps {
   users: User[];
   showColors: boolean;
   handleDelete: (email: string) => void;
+  changeSorting: (sort: SortBy) => void;
 }
 
-export function UsersList({ users, showColors, handleDelete }: UsersListProps) {
+export function UsersList({ users, showColors, handleDelete, changeSorting }: UsersListProps) {
   return (
     <table width="100%">
       <thead>
         <tr>
           <th>Foto</th>
-          <th>Nombre</th>
-          <th>Apellido</th>
-          <th>País</th>
+          <th className="pointer" onClick={() => changeSorting(SortBy.NAME)}>Nombre</th>
+          <th className="pointer" onClick={() => changeSorting(SortBy.LAST)}>Apellido</th>
+          <th className="pointer" onClick={() => changeSorting(SortBy.COUNTRY)}>País</th>
           <th>Acciones</th>
         </tr>
       </thead>
