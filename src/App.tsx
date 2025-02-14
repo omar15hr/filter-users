@@ -1,43 +1,11 @@
 import { useMemo, useState } from "react";
 import { SortBy, type User } from "./interfaces/types";
 import { UsersList } from "./components/UsersList";
-import { useInfiniteQuery } from "@tanstack/react-query";
 import "./App.css";
-
-const fetchUsers = async ({ pageParam = 1 }: { pageParam: number}) => {
-  return await fetch(
-    `https://randomuser.me/api/?results=10&seed=omar&page=${pageParam}`
-  )
-    .then(async (res) => {
-      if (!res.ok) throw new Error("Failed to fetch users");
-      return await res.json();
-    })
-    .then(res => {
-      const currentPage = Number(res.info.page) 
-      const nextCursor = currentPage > 10 ? undefined : currentPage + 1
-      return {
-        users: res.results,
-        nextCursor
-      }
-    })
-};
+import { useUsers } from "./hooks/useUsers";
 
 function App() {
-  const {
-    isLoading,
-    isError,
-    data,
-    refetch,
-    fetchNextPage,
-    hasNextPage
-  } = useInfiniteQuery<{users:User[],nextCursor:number}>({
-    queryKey: ['users'],
-    queryFn: fetchUsers,
-    initialPageParam: 1,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
-  })
-
-  const users: User[] = data?.pages?.flatMap(page => page.users) ?? [];
+  const { isLoading, isError, users, refetch, fetchNextPage, hasNextPage } = useUsers();
 
   const [showColors, setShowColors] = useState(false);
   const [sorting, setSorting] = useState<SortBy>(SortBy.NONE);
@@ -128,14 +96,14 @@ function App() {
         {!isLoading && !isError && hasNextPage && (
           <button
             className="pagination-button"
-            onClick={() =>{ fetchNextPage() }}
+            onClick={() => {
+              fetchNextPage();
+            }}
           >
             Cargar más resultados
           </button>
         )}
-        {
-          !hasNextPage && <p>No hay más resultados disponibles</p>
-        }
+        {!hasNextPage && <p>No hay más resultados disponibles</p>}
       </main>
     </div>
   );
