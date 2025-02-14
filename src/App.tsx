@@ -1,17 +1,47 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { SortBy, type User } from "./interfaces/types";
 import { UsersList } from "./components/UsersList";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import "./App.css";
 
+const fetchUsers = async ({ pageParam = 1 }: { pageParam: number}) => {
+  return await fetch(
+    `https://randomuser.me/api/?results=10&seed=omar&page=${pageParam}`
+  )
+    .then(async (res) => {
+      if (!res.ok) throw new Error("Failed to fetch users");
+      return await res.json();
+    })
+    .then(res => {
+      const currentPage = Number(res.info.page) 
+      const nextCursor = currentPage > 10 ? undefined : currentPage + 1
+      return {
+        users: res.results,
+        nextCursor
+      }
+    })
+};
+
 function App() {
-  const [users, setUsers] = useState<User[]>([]);
+  const {
+    isLoading,
+    isError,
+    data,
+    refetch,
+    fetchNextPage,
+    hasNextPage
+  } = useInfiniteQuery<{users:User[],nextCursor:number}>({
+    queryKey: ['users'],
+    queryFn: fetchUsers,
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+  })
+
+  const users: User[] = data?.pages?.flatMap(page => page.users) ?? [];
+
   const [showColors, setShowColors] = useState(false);
   const [sorting, setSorting] = useState<SortBy>(SortBy.NONE);
-  const originalUsers = useRef<User[]>([]);
   const [filterCountry, setFilterCountry] = useState<string | null>(null);
-
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const toggleColor = () => {
     setShowColors(!showColors);
@@ -25,35 +55,16 @@ function App() {
 
   const handleDelete = (email: string) => {
     const filteredUsers = users.filter((user) => user.email !== email);
-    setUsers(filteredUsers);
+    // setUsers(filteredUsers);
   };
 
-  const handleReset = () => {
-    setUsers(originalUsers.current);
+  const handleReset = async () => {
+    await refetch();
   };
 
   const handleChangeSort = (sort: SortBy) => {
     setSorting(sort);
   };
-
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    fetch("https://randomuser.me/api/?results=10")
-      .then(async (res) => {
-        if (!res.ok) throw new Error("Failed to fetch users");
-        return await res.json()
-      })
-      .then((res) => {
-        setUsers(res.results);
-        originalUsers.current = res.results;
-      })
-      .catch((err) => {
-        setError(err) 
-        console.log(err)
-      })
-      .finally(() => setLoading(false));
-  }, []);
 
   const filteredUsers = useMemo(() => {
     return filterCountry != null && filterCountry.length > 0
@@ -100,12 +111,7 @@ function App() {
         />
       </header>
       <main>
-        {loading && <strong>Cargando...</strong>}
-        {!loading && error && <p>Error: {error}</p>}
-        {!loading && !error && users.length === 0 && (
-          <p>No hay usuarios disponibles</p>
-        )}
-        {!loading && !error && users.length > 0 && (
+        {users.length > 0 && (
           <UsersList
             changeSorting={handleChangeSort}
             users={sortedUsers}
@@ -113,6 +119,23 @@ function App() {
             handleDelete={handleDelete}
           />
         )}
+        {isLoading && <strong>Cargando...</strong>}
+        {isError && <p>Ha habido un error</p>}
+        {!isLoading && !isError && users.length === 0 && (
+          <p>No hay usuarios disponibles</p>
+        )}
+
+        {!isLoading && !isError && hasNextPage && (
+          <button
+            className="pagination-button"
+            onClick={() =>{ fetchNextPage() }}
+          >
+            Cargar más resultados
+          </button>
+        )}
+        {
+          !hasNextPage && <p>No hay más resultados disponibles</p>
+        }
       </main>
     </div>
   );
