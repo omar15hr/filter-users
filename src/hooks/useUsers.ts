@@ -3,7 +3,7 @@ import { fetchUsers } from "../services/users";
 import { User } from "../interfaces/types";
 
 export const useUsers = () => {
-  const { isLoading, isError, data, refetch, fetchNextPage, hasNextPage } =
+  const { isLoading, isError, data, refetch, fetchNextPage, hasNextPage,  } =
     useInfiniteQuery<{ users: User[]; nextCursor: number | undefined }>({
       queryKey: ["users"],
       queryFn: async () => await fetchUsers({ pageParam: 1 }),
